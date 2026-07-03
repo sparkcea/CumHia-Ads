@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <title>3 Odds Prediction</title>
+    <!-- Telegram WebApp -->
+    <script src="https://telegram.org/js/telegram-web-app.js">
+    </script>
+    <!-- AdsGram SDK (rewarded video) -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js">
+    </script>
+    <style>
+        /* ----- RESET & BASE ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d0d0d;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+        .card {
+            background: linear-gradient(145deg, #0a0a1a, #120a1f);
+            border: 1px solid #f5a623;
+            border-radius: 18px;
+            padding: 20px 16px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 0 30px rgba(245, 166, 35, 0.12);
+            text-align: center;
+        }
+        .icon {
+            font-size: 36px;
+            margin-bottom: 4px;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+        .sub {
+            font-size: 12px;
+            color: #bbb;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        /* ----- PREDICTION CARD (BLURRABLE) ----- */
+        .prediction-wrapper {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px 10px;
+            margin-bottom: 12px;
+            border: 1px solid #2a2a2a;
+            transition: filter 0.4s ease;
+            min-height: 200px;
+        }
+        .prediction-wrapper.locked {
+            filter: blur(10px);
+            pointer-events: none;
+            user-select: none;
+        }
+        .prediction-wrapper.unlocked {
+            filter: blur(0);
+            pointer-events: auto;
+        }
+        .match-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #222;
+        }
+        .match-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .match-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #f5a623;
+            margin-bottom: 4px;
+        }
+        .odds-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 4px;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 2px;
+            border-radius: 8px;
+        }
+        .odds-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .odds-label {
+            font-size: 9px;
+            color: #999;
+            text-transform: uppercase;
+        }
+        .odds-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .odds-value.highlight {
+            color: #f5a623;
+        }
+
+        /* ----- LOCK OVERLAY ----- */
+        .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        .prediction-wrapper.unlocked .lock-overlay {
+            display: none;
+        }
+        .lock-icon {
+            font-size: 28px;
+            margin-bottom: 2px;
+            text-shadow: 0 0 20px rgba(245, 166, 35, 0.3);
+        }
+        .lock-text {
+            font-size: 11px;
+            color: #f5a623;
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+
+        /* ----- TIMER ----- */
+        .timer-container {
+            font-size: 13px;
+            color: #888;
+            margin: 4px 0 10px;
+        }
+        .timer-container .time {
+            font-weight: 700;
+            color: #f5a623;
+            background: rgba(245, 166, 35, 0.15);
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+
+        /* ----- BUTTONS (compact) ----- */
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            letter-spacing: 0.2px;
+            flex: 1;
+            max-width: 120px;
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-ad {
+            background: linear-gradient(135deg, #f5a623, #d4891a);
+            color: #fff;
+        }
+        .btn-stars {
+            background: linear-gradient(135deg, #ffd700, #e6b800);
+            color: #1a1a1a;
+        }
+        .btn-free {
+            background: transparent;
+            border: 1px solid #555;
+            color: #aaa;
+            font-size: 12px;
+            flex: 0.6;
+            max-width: 80px;
+        }
+        .btn-free:hover {
+            background: #1a1a1a;
+        }
+
+        /* ----- STATUS ----- */
+        #status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #aaa;
+            min-height: 16px;
+            transition: color 0.3s;
+        }
+        #status.success {
+            color: #30d158;
+        }
+        #status.error {
+            color: #ff453a;
+        }
+
+        .note {
+            margin-top: 14px;
+            font-size: 10px;
+            color: #444;
+        }
+        .policy-note {
+            margin-top: 6px;
+            font-size: 9px;
+            color: #3a3a3a;
+            border-top: 1px solid #222;
+            padding-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">⚽</div>
+        <h1>Today's 3 Odds Prediction</h1>
+        <p class="sub">Unlock the predictions below</p>
+
+        <!-- PREDICTION CARD (initially locked) -->
+        <div id="predictionCard" class="prediction-wrapper locked">
+
+            <div class="prediction-content">
+
+                <!-- Match 1: Australia vs Egypt -->
+                <div class="match-item">
+                    <div class="match-name">🇦🇺 Australia vs Egypt 🇪🇬</div>
+                    <div class="odds-grid">
+                        <div class="odds-cell"><span class="odds-label">1</span><span class="odds-value">3.25</span></div>
+                        <div class="odds-cell"><span class="odds-label">X</span><span class="odds-value">2.92</span></div>
+                        <div class="odds-cell"><span class="odds-label">2</span><span class="odds-value">2.38</span></div>
+                        <div class="odds-cell"><span class="odds-label">O 2.5</span><span class="odds-value">1.95</span></div>
+                        <div class="odds-cell"><span class="odds-label">U 2.5</span><span class="odds-value">1.85</span></div>
+                    </div>
+                </div>
+
+                <!-- Match 2: Colombia vs Ghana -->
+                <div class="match-item">
+                    <div class="match-name">🇨🇴 Colombia vs Ghana 🇬🇭</div>
+                    <div class="odds-grid">
+                        <div class="odds-cell"><span class="odds-label">1</span><span class="odds-value">1.60</span></div>
+                        <div class="odds-cell"><span class="odds-label">X</span><span class="odds-value">3.40</span></div>
+                        <div class="odds-cell"><span class="odds-label">2</span><span class="odds-value">7.35</span></div>
+                        <div class="odds-cell"><span class="odds-label">O 2.5</span><span class="odds-value">2.07</span></div>
+                        <div class="odds-cell"><span class="odds-label">U 2.5</span><span class="odds-value">1.66</span></div>
+                    </div>
+                </div>
+
+                <!-- Match 3: Shelbourne vs Dundalk -->
+                <div class="match-item">
+                    <div class="match-name">🇮🇪 Shelbourne vs Dundalk 🇮🇪</div>
+                    <div class="odds-grid">
+                        <div class="odds-cell"><span class="odds-label">1</span><span class="odds-value">2.16</span></div>
+                        <div class="odds-cell"><span class="odds-label">X</span><span class="odds-value">3.70</span></div>
+                        <div class="odds-cell"><span class="odds-label">2</span><span class="odds-value">2.98</span></div>
+                        <div class="odds-cell"><span class="odds-label">O 2.5</span><span class="odds-value">2.10</span></div>
+                        <div class="odds-cell"><span class="odds-label">U 2.5</span><span class="odds-value">1.75</span></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Lock overlay -->
+            <div class="lock-overlay">
+                <div class="lock-icon">🔒</div>
+                <div class="lock-text">Watch ad • Pay stars • Wait 30m</div>
+            </div>
+        </div>
+
+        <!-- TIMER -->
+        <div class="timer-container">
+            ⏳ Free unlock in <span id="countdown" class="time">30:00</span>
+        </div>
+
+        <!-- COMPACT BUTTONS -->
+        <div class="btn-group">
+            <button id="adBtn" class="btn btn-ad">▶️ Ad</button>
+            <button id="starsBtn" class="btn btn-stars">⭐ Stars</button>
+            <button id="freeBtn" class="btn btn-free">⏳ Free</button>
+        </div>
+
+        <div id="status"></div>
+        <p class="note">AdsGram • Rewarded video • Stars supported</p>
+        <p class="policy-note">🔹 Ads are optional – wait 30 minutes for free</p>
+    </div>
+
+    <script>
+        // ----- CONFIG -----
+        const UNLOCK_TIME_SECONDS = 30 * 60; // 30 minutes
+        const STORAGE_KEY = 'prediction_timer_start';
+
+        // ----- DOM REFS -----
+        const card = document.getElementById('predictionCard');
+        const countdownEl = document.getElementById('countdown');
+        const statusEl = document.getElementById('status');
+        const adBtn = document.getElementById('adBtn');
+        const starsBtn = document.getElementById('starsBtn');
+        const freeBtn = document.getElementById('freeBtn');
+
+        // ----- TELEGRAM WEBAPP -----
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+        tg.setHeaderColor('#0d0d0d');
+        tg.setBackgroundColor('#0d0d0d');
+
+        // ----- STATE -----
+        let isUnlocked = false;
+        let timerInterval = null;
+
+        // ----- ADSGRAM INIT (blockId 37158) -----
+        const AdController = window.Adsgram.init({
+            blockId: "37158",
+            debug: false
+        });
+
+        // ----- UNLOCK FUNCTION -----
+        function unlockPrediction(method = 'free') {
+            if (isUnlocked) return;
+            isUnlocked = true;
+            card.classList.remove('locked');
+            card.classList.add('unlocked');
+
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            const msg = method === 'ad' ? '✅ Unlocked via ad!' :
+                        method === 'stars' ? '⭐ Unlocked via Stars!' :
+                        '🎉 Unlocked for free!';
+            statusEl.className = 'success';
+            statusEl.textContent = msg;
+
+            adBtn.disabled = true;
+            starsBtn.disabled = true;
+            freeBtn.disabled = true;
+
+            document.querySelector('.timer-container').style.display = 'none';
+
+            if (method === 'ad') {
+                tg.sendData(JSON.stringify({ action: 'ad_complete' }));
+                setTimeout(() => tg.close(), 1500);
+            } else if (method === 'stars') {
+                tg.sendData(JSON.stringify({ action: 'stars_payment' }));
+            }
+        }
+
+        // ----- TIMER LOGIC (persisted via localStorage) -----
+        function initTimer() {
+            let startTime = localStorage.getItem(STORAGE_KEY);
+
+            if (!startTime) {
+                startTime = Date.now();
+                localStorage.setItem(STORAGE_KEY, startTime);
+            } else {
+                startTime = parseInt(startTime, 10);
+            }
+
+            function updateTimer() {
+                const elapsed = (Date.now() - startTime) / 1000;
+                const remaining = Math.max(0, UNLOCK_TIME_SECONDS - elapsed);
+
+                if (remaining <= 0) {
+                    unlockPrediction('free');
+                    return;
+                }
+
+                const mins = Math.floor(remaining / 60);
+                const secs = Math.floor(remaining % 60);
+                countdownEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                // Only show status if not unlocked yet
+                if (!isUnlocked) {
+                    statusEl.textContent = `⏳ ${mins}m ${secs}s remaining for free unlock`;
+                }
+            }
+
+            // Update immediately, then every second
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // ----- BUTTON HANDLERS -----
+        adBtn.addEventListener('click', async () => {
+            if (isUnlocked) return;
+            adBtn.disabled = true;
+            adBtn.textContent = '⏳';
+            statusEl.className = '';
+            statusEl.textContent = '';
+
+            try {
+                await AdController.show();
+                unlockPrediction('ad');
+            } catch (err) {
+                adBtn.disabled = false;
+                adBtn.textContent = '▶️ Ad';
+                statusEl.className = 'error';
+                statusEl.textContent = '❌ Ad not completed. Try again or wait.';
+                console.error('Ad error:', err);
+            }
+        });
+
+        starsBtn.addEventListener('click', () => {
+            if (isUnlocked) return;
+            starsBtn.disabled = true;
+            starsBtn.textContent = '⏳';
+            statusEl.className = '';
+            statusEl.textContent = '';
+
+            tg.sendData(JSON.stringify({ action: 'stars_payment' }));
+
+            statusEl.className = 'success';
+            statusEl.textContent = '⭐ Stars payment initiated – check your chat!';
+            starsBtn.disabled = false;
+            starsBtn.textContent = '⭐ Stars';
+        });
+
+        freeBtn.addEventListener('click', () => {
+            if (isUnlocked) return;
+            // Just show remaining time — already shown in status
+            statusEl.textContent = '⏳ Wait for timer to reach 0, or use ad/stars.';
+            setTimeout(() => {
+                if (!isUnlocked) statusEl.textContent = '';
+            }, 2000);
+        });
+
+        // ----- START TIMER -----
+        initTimer();
+
+        // ----- ADSGRAM EVENT LISTENERS -----
+        AdController.addEventListener('onStart', () => {
+            statusEl.textContent = '⏳ Watching ad...';
+        });
+
+        console.log('✅ AdsGram initialized with blockId 37158');
+        console.log('✅ Timer set to 30 minutes (persisted in localStorage)');
+    </script>
+</body>
+</html>
