@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Unlock Her Full Leak</title>
+  <!-- Telegram WebApp SDK MUST load first -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: linear-gradient(145deg, #0a0a1a, #120a1f);
+      border: 1px solid #bf5fff;
+      border-radius: 20px;
+      padding: 36px 24px;
+      text-align: center;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 0 40px rgba(191, 95, 255, 0.18);
+    }
+    .icon { font-size: 52px; margin-bottom: 16px; }
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .sub {
+      font-size: 14px;
+      color: #bbb;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .reward-badge {
+      display: inline-block;
+      background: rgba(191, 95, 255, 0.15);
+      border: 1px solid rgba(191, 95, 255, 0.4);
+      color: #bf5fff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+    }
+    #adBtn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #bf5fff, #7c00cc);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.3px;
+    }
+    #adBtn:active { transform: scale(0.97); }
+    #adBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status {
+      margin-top: 18px;
+      font-size: 14px;
+      color: #aaa;
+      min-height: 20px;
+      transition: color 0.3s;
+    }
+    #status.success { color: #30d158; }
+    #status.error   { color: #ff453a; }
+    .note {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">🍑</div>
+    <h1>Unlock Her Full Leak</h1>
+    <p class="sub">Watch a quick video ad and the full uncensored leak lands in your chat instantly 🔥</p>
+    <div class="reward-badge">🎁 Watch 1 Ad → Get Full Leak</div>
+    <button id="adBtn" disabled>⏳ Loading...</button>
+    <div id="status"></div>
+    <p class="note">Ad powered by AdsGram • Takes ~15 seconds</p>
+  </div>
+
+  <script>
+    // STEP 1: Initialize Telegram WebApp FIRST
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
+    tg.setHeaderColor('#0d0d0d');
+    tg.setBackgroundColor('#0d0d0d');
+
+    const btn = document.getElementById('adBtn');
+    const status = document.getElementById('status');
+
+    // STEP 2: Check if we're in Telegram environment
+    // tg.initData contains the launch parameters passed by Telegram
+    if (!tg.initData || tg.initData === '') {
+      // No Telegram launch parameters - show error
+      btn.textContent = '❌ Open in Telegram';
+      btn.style.background = '#ff453a';
+      status.textContent = 'This page must be opened from inside the Telegram bot.';
+      status.className = 'error';
+    } else {
+      // STEP 3: We have Telegram context - load AdsGram SDK
+      const script = document.createElement('script');
+      script.src = 'https://sad.adsgram.ai/js/sad.min.js';
+      script.onload = function() {
+        // STEP 4: Initialize AdsGram AFTER SDK loads
+        try {
+          const AdController = window.Adsgram.init({
+            blockId: "36837",
+            debug: false
+          });
+
+          btn.disabled = false;
+          btn.textContent = '📺 Watch Ad to Unlock 🎬';
+
+          // Set up click handler
+          btn.onclick = function() {
+            btn.disabled = true;
+            btn.textContent = '⏳ Loading Ad...';
+            status.className = '';
+            status.textContent = '';
+
+            AdController.show()
+              .then((result) => {
+                if (result.done) {
+                  // User watched the FULL ad
+                  status.className = 'success';
+                  status.textContent = '✅ Done! Sending your leak now...';
+                  btn.textContent = '✅ Ad Complete!';
+
+                  // Send to bot
+                  tg.sendData(JSON.stringify({ action: 'ad_complete', type: 'leaks' }));
+                  setTimeout(() => tg.close(), 1500);
+                } else {
+                  // User closed early
+                  btn.disabled = false;
+                  btn.textContent = '📺 Watch Ad to Unlock 🎬';
+                  status.className = 'error';
+                  status.textContent = '❌ Please watch the FULL ad to unlock.';
+                }
+              })
+              .catch((err) => {
+                btn.disabled = false;
+                btn.textContent = '📺 Watch Ad to Unlock 🎬';
+                status.className = 'error';
+                status.textContent = '❌ ' + (err.description || 'Ad failed. Try again.');
+              });
+          };
+        } catch (e) {
+          btn.textContent = '❌ Init Failed';
+          btn.style.background = '#ff453a';
+          status.textContent = 'Failed to initialize ads. Please try again.';
+          status.className = 'error';
+        }
+      };
+      script.onerror = function() {
+        btn.textContent = '❌ Load Failed';
+        btn.style.background = '#ff453a';
+        status.textContent = 'Could not load ad system.';
+        status.className = 'error';
+      };
+      document.head.appendChild(script);
+    }
+  </script>
+</body>
+</html>
