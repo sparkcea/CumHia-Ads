@@ -143,13 +143,13 @@
               // Open bot with deep link to trigger delivery
               tg.openTelegramLink('https://t.me/cumhiabot?start=ad_leaks');
               // Close miniapp shortly after
-              setTimeout(() => tg.close(), 200);
+              setTimeout(() => tg.close(), 500);
             })
             .catch(err => {
               // Still try to redirect even if fetch fails
               status.textContent = '✅ Done! Opening bot...';
               tg.openTelegramLink('https://t.me/cumhiabot?start=ad_leaks');
-              setTimeout(() => tg.close(), 200);
+              setTimeout(() => tg.close(), 500);
             });
           } else {
             // User closed ad early
